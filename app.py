@@ -99,7 +99,13 @@ def get_ai_reply(user_phone, user_message):
         }
     )
 
-    reply = response.json()["content"][0]["text"]
+    resp_json = response.json()
+    print(f"Anthropic raw response: {resp_json}")
+    if "content" in resp_json and len(resp_json["content"]) > 0:
+        reply = resp_json["content"][0]["text"]
+    else:
+        print(f"Unexpected Anthropic response: {resp_json}")
+        reply = "Hi! Thanks for your message. How can I help you with Little Hands Stories? Please ask me about our boxes, prices or how to order!"
 
     # Add assistant reply to history
     conversations[user_phone].append({
