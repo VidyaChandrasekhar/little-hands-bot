@@ -127,29 +127,49 @@ def receive_message():
     """Receive and process incoming WhatsApp messages"""
     try:
         data = request.json
+        print(f"Incoming webhook: {json.dumps(data)}")
 
-        # Extract message details
-        entry = data["entry"][0]
-        changes = entry["changes"][0]
-        value = changes["value"]
+        # Safety checks
+        if not data:
+            return jsonify({"status": "no data"}), 200
+        
+        entry = data.get("entry", [])
+        if not entry:
+            return jsonify({"status": "no entry"}), 200
 
-        if "messages" not in value:
+        changes = entry[0].get("changes", [])
+        if not changes:
+            return jsonify({"status": "no changes"}), 200
+
+        value = changes[0].get("value", {})
+        if not value:
+            return jsonify({"status": "no value"}), 200
+
+        messages = value.get("messages", [])
+        if not messages:
             return jsonify({"status": "no message"}), 200
 
-        message = value["messages"][0]
-        user_phone = message["from"]
-        
+        message = messages[0]
+        user_phone = message.get("from")
+        if not user_phone:
+            return jsonify({"status": "no phone"}), 200
+
         # Only handle text messages
-        if message["type"] != "text":
-            send_whatsapp_message(user_phone, 
+        if message.get("type") != "text":
+            send_whatsapp_message(user_phone,
                 "Hi! I can only read text messages at the moment. "
                 "How can I help you with Little Hands Stories & Activities Box? 📦")
             return jsonify({"status": "ok"}), 200
 
-        user_text = message["text"]["body"]
+        user_text = message.get("text", {}).get("body", "")
+        if not user_text:
+            return jsonify({"status": "empty message"}), 200
+
+        print(f"Message from {user_phone}: {user_text}")
 
         # Get AI reply
         ai_reply = get_ai_reply(user_phone, user_text)
+        print(f"AI reply: {ai_reply}")
 
         # Send reply back via WhatsApp
         send_whatsapp_message(user_phone, ai_reply)
@@ -158,6 +178,8 @@ def receive_message():
 
     except Exception as e:
         print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"status": "error"}), 200
 
 
