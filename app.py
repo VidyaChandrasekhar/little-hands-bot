@@ -249,7 +249,7 @@ def receive_message():
 
         # photos, voice notes, videos, files
         if mtype != "text":
-            if user_phone != OWNER_PHONE:
+            if True:
                 if mtype in MEDIA_TYPES:
                     print(f"{mtype} from {user_phone}")
                     forward_media_to_owner(user_phone, mtype, message.get(mtype, {}))
@@ -275,10 +275,10 @@ def receive_message():
             return jsonify({"status": "empty"}), 200
         print(f"Message from {user_phone}: {user_text}")
 
-        # owner commands
-        if user_phone == OWNER_PHONE:
-            if user_text.startswith("#"):
-                handle_owner_command(user_text)
+        # owner commands (any other message from the owner is answered like a
+        # customer's, so you can test the bot from your own phone)
+        if user_phone == OWNER_PHONE and user_text.startswith("#"):
+            handle_owner_command(user_text)
             return jsonify({"status": "ok"}), 200
 
         # human has taken over
